@@ -1,0 +1,63 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Complaint {
+  id           String   @id @default(uuid())
+  title        String
+  description  String
+  imageUrl     String?
+  category     String   // waste, water, road, electricity, safety
+  urgency      String   // low, medium, high, critical
+  ward         String   // Ward 1, Ward 2, Ward 3, Ward 4, Ward 5
+  status       String   // pending, routed, in_progress, resolved
+  assignedDept String
+  latitude     Float
+  longitude    Float
+  citizenName  String
+  citizenPhone String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  actionLogs   ActionLog[]
+}
+
+model Policy {
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  category  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Official {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  password     String
+  name         String
+  department   String
+  wardAssigned String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model ActionLog {
+  id           String    @id @default(uuid())
+  complaintId  String
+  complaint    Complaint @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+  timestamp    DateTime  @default(now())
+  actionType   String    // Status change / Note / Field visit logged / Mark resolved
+  notes        String
+  officialName String
+  photoUrl     String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
