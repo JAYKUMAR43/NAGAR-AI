@@ -115,7 +115,9 @@ export class VectorStore {
   // Delete an item from the store
   static delete(id: string, type: "complaint" | "policy"): void {
     const records = initializeStore();
-    const filteredRecords = records.filter(r => !(r.id === id && r.type === type));
+    const filteredRecords = id === "all"
+      ? records.filter(r => r.type !== type)
+      : records.filter(r => !(r.id === id && r.type === type));
     fs.writeFileSync(VECTOR_STORE_PATH, JSON.stringify(filteredRecords, null, 2));
   }
 

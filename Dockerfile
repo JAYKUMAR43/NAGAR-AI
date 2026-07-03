@@ -1,49 +1,56 @@
-# =========================================================================
-# Stage 1: Install dependencies and build the application
-# =========================================================================
-FROM node:20-alpine AS builder
+# Stage 1: Install dependencies
+FROM node:20-alpine AS deps
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Install build dependencies if needed
-RUN apk add --no-cache libc6-compat
-
-# Copy package configurations
+# Install dependencies based on package-lock.json
 COPY package*.json ./
-RUN npm install
+RUN npm ci
 
-# Copy the rest of the application source code
+# Stage 2: Rebuild the source code
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Generate the Prisma 6 Client
+# Disable telemetry during build
+ENV NEXT_TELEMETRY_DISABLED 1
+
+# Generate Prisma Client
 RUN npx prisma generate
 
-# Build Next.js application
-RUN npm run build
+# Build Next.js app (avoiding database connection requirements during image compilation)
+RUN npx next build
 
-# =========================================================================
-# Stage 2: Production runner
-# =========================================================================
+# Stage 3: Minimal runner image
 FROM node:20-alpine AS runner
 WORKDIR /app
 
-ENV NODE_ENV=production
-# Disable Next.js telemetry collection during runtime
-ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV production
+ENV NEXT_TELEMETRY_DISABLED 1
 
-# Copy build output, dependencies, and database files
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Copy public files
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/db ./db
 
-# Cloud Run injects the PORT environment variable, which defaults to 8080.
-# We map Next.js to start on this injected PORT.
+# Set correct permissions for Next.js prerendering cache
+RUN mkdir .next
+RUN chown nextjs:nodejs .next
+
+# Leverage output tracing to copy only necessary standalone files
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Copy prisma schema so client can locate it if needed
+COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+
+USER nextjs
+
+# Expose default Cloud Run port
 EXPOSE 8080
-ENV PORT=8080
-ENV HOSTNAME="0.0.0.0"
+ENV PORT 8080
+ENV HOSTNAME "0.0.0.0"
 
-# Start the application server
 CMD ["node", "server.js"]

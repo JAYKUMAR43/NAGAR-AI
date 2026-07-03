@@ -99,10 +99,10 @@ async function main() {
   console.log("Starting Database Seeding...");
 
   // 1. Clear database
+  await prisma.actionLog.deleteMany({});
   await prisma.complaint.deleteMany({});
   await prisma.policy.deleteMany({});
   await prisma.official.deleteMany({});
-  await prisma.actionLog.deleteMany({});
   console.log("Existing complaints, policies, officials, and action logs cleared.");
 
   // Clear local vector store

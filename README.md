@@ -19,7 +19,7 @@ Nagar AI is a full-stack, production-ready civic decision intelligence platform 
 - **Frontend**: Next.js 14/16 (App Router) + TypeScript + Tailwind CSS
 - **3D / Animations**: React Three Fiber + Drei (Three.js), Framer Motion, use-gesture
 - **AI / RAG**: `@google/generative-ai` (Gemini 2.0 Flash & Text Embedding 004), custom local cosine-similarity JSON Vector Store
-- **Database**: SQLite + Prisma 6 ORM (easily swappable to AlloyDB/PostgreSQL)
+- **Database**: PostgreSQL + Prisma 6 ORM
 - **Deployment**: Next.js standalone configurations (Dockerfile included for Google Cloud Run/Vercel)
 
 ---
@@ -27,7 +27,8 @@ Nagar AI is a full-stack, production-ready civic decision intelligence platform 
 ## Quick Start
 
 ### 1. Prerequisites
-Ensure you have [Node.js 18+](https://nodejs.org/) installed.
+- Ensure you have [Node.js 18+](https://nodejs.org/) installed.
+- Access to a hosted PostgreSQL instance (e.g. [Vercel Postgres](https://vercel.com/storage/postgres), [Neon](https://neon.tech), or [Supabase](https://supabase.com)).
 
 ### 2. Install Dependencies
 Clone/navigate to the project folder and run:
@@ -36,24 +37,40 @@ npm install
 ```
 
 ### 3. Database Migration & Seeding
-Initialize the SQLite database schema and seed the database with **65 realistic mock complaints** spread over 30 days, along with city policy documents. Run:
-```bash
-# Push schema to SQLite
-npx prisma db push
+Initialize the PostgreSQL database schema and seed it with **65 realistic mock complaints** spread over 30 days, along with city policy documents.
 
-# Run the seeding script
-npx prisma db seed
-```
-*(This creates `prisma/dev.db` and maps vector embeddings inside `db/vector_store.json`)*
+1. Create a `.env` or `.env.local` file in the root folder.
+2. Set your environment variables:
+   ```env
+   # Database connection string pointing to your PostgreSQL instance
+   DATABASE_URL="postgresql://[user]:[password]@[host]/[dbname]?sslmode=require"
+   
+   # Optional: Google Gemini API Key
+   GEMINI_API_KEY="AIzaSy..."
+   ```
+3. Push the database schema and run the seed script:
+   ```bash
+   # Push schema to PostgreSQL
+   npx prisma db push
+   
+   # Run the seeding script
+   npx prisma db seed
+   ```
+   *(This maps the DB schemas and populates vector embeddings inside `db/vector_store.json`)*
 
-### 4. Configuration
-Create a `.env.local` file (already preconfigured in the workspace) and add your Google Gemini API Key:
-```env
-GEMINI_API_KEY=AIzaSy...
-```
-> **Note on Demo Mode**: If no API key is specified (or the placeholder is kept), Nagar AI automatically runs in **Demo Mode**. It uses fallback heuristics to run classifications and deterministically computes mock vector embeddings so that all features (RAG search, form intake, maps, telemetry, anomaly cards) remain 100% operational out-of-the-box!
+### 4. Deploying to Vercel
 
-### 5. Start Development Server
+To deploy this application to Vercel, ensure you configure the following **Environment Variables** in your Vercel Project Dashboard under **Project Settings → Environment Variables**:
+
+1. **`DATABASE_URL`**: Set the value to your hosted PostgreSQL database connection string.
+2. **`GEMINI_API_KEY`**: Set your Google Gemini API Key to enable live AI Decision Intelligence (classification, RAG, and report summaries). If omitted, the application falls back to Demo Mode.
+
+> [!IMPORTANT]
+> - Do not write these environment variables in `.env.local` for production, as `.env.local` is git-ignored and never reaches the deployed environment.
+> - After adding or modifying environment variables in the Vercel dashboard, you **must trigger a redeploy** for the variables to take effect.
+> - The Vercel build script is configured to automatically run `prisma generate && prisma db push` to keep your database schemas synchronized on every deployment.
+
+### 5. Local Development
 Run:
 ```bash
 npm run dev

@@ -1,23 +1,13 @@
 import Link from "next/link";
-import { Shield, Sparkles, TrendingUp, Users, ArrowRight, AlertTriangle } from "lucide-react";
+import { Shield, Sparkles, TrendingUp, Users, ArrowRight } from "lucide-react";
 import CityClientWrapper from "@/components/3d/CityClientWrapper";
 
 export default function Home() {
-  const isDemo = !process.env.GEMINI_API_KEY;
-
   return (
     <main className="min-h-screen bg-gray-950 text-white relative overflow-hidden">
       {/* Background Gradients */}
       <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-cyan-500/10 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-purple-500/10 blur-[120px] pointer-events-none" />
-
-      {/* Floating Demo Warning */}
-      {isDemo && (
-        <div className="bg-amber-950/80 backdrop-blur-md border-b border-amber-500/30 text-amber-200 py-3 px-4 text-center text-sm font-medium flex items-center justify-center gap-2 relative z-50 animate-pulse">
-          <AlertTriangle className="w-4 h-4 text-amber-400" />
-          <span>Running in <strong>Demo Mode</strong>. Heuristics are active. Set your <code>GEMINI_API_KEY</code> in <code>.env.local</code> for live AI.</span>
-        </div>
-      )}
 
       {/* Header/Navbar */}
       <header className="max-w-7xl mx-auto px-6 py-6 flex justify-between items-center relative z-25">
