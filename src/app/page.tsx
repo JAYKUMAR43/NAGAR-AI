@@ -2,6 +2,8 @@ import Link from "next/link";
 import { Shield, Sparkles, TrendingUp, Users, ArrowRight } from "lucide-react";
 import CityClientWrapper from "@/components/3d/CityClientWrapper";
 
+export const dynamic = "force-dynamic";
+
 export default function Home() {
   return (
     <main className="min-h-screen bg-gray-950 text-white relative overflow-hidden">

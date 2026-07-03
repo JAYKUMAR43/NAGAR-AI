@@ -4,6 +4,8 @@ import ConfigurationAlert from "@/components/ConfigurationAlert";
 import GeminiWarningBanner from "@/components/GeminiWarningBanner";
 import "./globals.css";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Nagar AI - Civic Decision Intelligence Platform",
   description: "An AI-powered multi-agent civic intelligence dashboard and intake portal for smart communities.",
